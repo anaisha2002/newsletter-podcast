@@ -1,0 +1,59 @@
+name: Daily Newsletter Podcast
+
+on:
+  schedule:
+    # Runs at 6:00 AM IST every day
+    # IST = UTC+5:30, so 6:00 AM IST = 00:30 UTC
+    - cron: '30 0 * * *'
+  workflow_dispatch:
+    # This lets you trigger it manually from GitHub's website
+    # useful for testing without waiting for the schedule
+
+jobs:
+  generate-podcast:
+    runs-on: ubuntu-latest  # GitHub gives us a free Linux machine
+
+    steps:
+      # Step 1: Download your code onto the GitHub machine
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Install Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Step 3: Install all your pip packages
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Step 4: Recreate the secret files from GitHub Secrets
+      # These files aren't in your repo (gitignored) so we rebuild them here
+      - name: Write credentials.json
+        run: echo '${{ secrets.GMAIL_CREDENTIALS }}' > credentials.json
+
+      - name: Write token.json
+        run: echo '${{ secrets.GMAIL_TOKEN }}' > token.json
+
+      # Step 5: Create the output folder
+      - name: Create output directory
+        run: mkdir -p output
+
+      # Step 6: Run your pipeline
+      - name: Run newsletter pipeline
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python main.py
+
+      # Step 7: Upload podcast.mp3 and script files as downloadable artifacts
+      # These stay available for 7 days on GitHub
+      - name: Upload podcast artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-podcast-${{ github.run_id }}
+          path: |
+            output/podcast.mp3
+            output/script.txt
+            output/script.json
+          retention-days: 7
