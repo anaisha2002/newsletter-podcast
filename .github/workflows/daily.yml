@@ -26,7 +26,11 @@ jobs:
 
       # Step 3: Install all your pip packages
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip show groq
+          pip list
 
       # Step 4: Recreate the secret files from GitHub Secrets
       # These files aren't in your repo (gitignored) so we rebuild them here
