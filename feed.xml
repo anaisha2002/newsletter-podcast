@@ -21,5 +21,12 @@
       <pubDate>Wed, 01 Jul 2026 18:53:30 -0000</pubDate>
       <itunes:duration>00:05:00</itunes:duration>
     </item>
+    <item>
+      <title>Briefing 2026-07-02 — Bending Spoons' IPO pops 40% on first day</title>
+      <enclosure url="https://github.com/anaisha2002/newsletter-podcast/releases/download/episode-2026-07-02/podcast.mp3" length="1599408" type="audio/mpeg"/>
+      <guid isPermaLink="false">https://github.com/anaisha2002/newsletter-podcast/releases/download/episode-2026-07-02/podcast.mp3</guid>
+      <pubDate>Thu, 02 Jul 2026 04:18:12 -0000</pubDate>
+      <itunes:duration>00:05:00</itunes:duration>
+    </item>
   </channel>
 </rss>
