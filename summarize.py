@@ -1,13 +1,13 @@
 """
 summarize.py
-Reads output/raw_emails.json, sends all newsletter content to Groq (free,
-works from India) in one prompt, asks it to dedupe overlapping stories and
-produce a structured podcast script (Headlines / Summaries / Deep Dives),
-and saves the result as both JSON (structured) and plain text (for TTS).
+Reads output/raw_emails.json, sends newsletter content to Groq in batches
+to avoid hitting rate limits, dedupes overlapping stories, and produces
+a structured podcast script.
 """
 
 import os
 import json
+import time
 from groq import Groq
 from dotenv import load_dotenv
 
@@ -21,9 +21,9 @@ TEXT_OUTPUT_PATH = "output/script.txt"
 # Groq client — one object, reused for every call
 client = Groq(api_key=GROQ_API_KEY)
 
-PROMPT_TEMPLATE = """You are producing a daily news podcast script from a batch of
+BATCH_PROMPT_TEMPLATE = """You are producing a daily news podcast script from a batch of
 newsletter emails (mostly AI and finance topics). Below is the raw content of
-{count} emails received today.
+{count} emails.
 
 Your job:
 1. Identify distinct news stories/topics across all emails. Multiple
@@ -34,32 +34,52 @@ Your job:
 3. Produce a JSON object with exactly this structure:
 
 {{
-  "date": "YYYY-MM-DD",
   "headlines": ["short one-liner headline 1", "short one-liner headline 2", ...],
   "summaries": [
     {{"title": "...", "summary": "2-3 sentence summary in plain conversational language"}}
   ],
   "deep_dives": [
-    {{"title": "...", "content": "A fuller, podcast-style spoken paragraph (4-8 sentences), explaining the story, why it matters, and any useful context. Written to be read aloud naturally, not like a bullet list."}}
+    {{"title": "...", "content": "A fuller, podcast-style spoken paragraph (4-8 sentences), explaining the story, why it matters, and any useful context."}}
   ]
 }}
 
-Only include 2-4 stories in deep_dives — pick the most significant/interesting
-ones. Include all distinct stories in summaries. Headlines should cover
-everything in summaries, just condensed to one line each.
+Include 2-3 stories max in deep_dives. Include all distinct stories in summaries.
 
 Respond with ONLY the JSON object, no markdown fences, no commentary.
 
-Here is today's raw newsletter content:
+Here is the raw newsletter content:
+
+{content}
+"""
+
+MERGE_PROMPT_TEMPLATE = """You are merging multiple batch summaries into one final podcast script.
+Below are {count} batches of summaries. Your job is to:
+
+1. Merge all headlines, removing duplicates or near-duplicates.
+2. Merge all summaries, removing duplicate stories (keep the best version of each).
+3. Select the 2-4 most significant stories for deep_dives.
+4. Return a single JSON object with this structure:
+
+{{
+  "date": "YYYY-MM-DD",
+  "headlines": ["headline 1", "headline 2", ...],
+  "summaries": [
+    {{"title": "...", "summary": "..."}}
+  ],
+  "deep_dives": [
+    {{"title": "...", "content": "..."}}
+  ]
+}}
+
+Here are the batches to merge:
 
 {content}
 """
 
 
 def build_content_blob(emails):
-    """Joins all emails into one big text block with clear separators.
-    We cap each email body at 1500 chars — newsletters front-load their
-    actual content; the rest is footers, ads, and unsubscribe links.
+    """Joins emails into text block with clear separators.
+    Caps each email body at 1500 chars to reduce token usage.
     """
     parts = []
     for e in emails:
@@ -73,8 +93,6 @@ def build_content_blob(emails):
 def script_to_plaintext(script):
     """
     Converts the structured JSON script into a flowing spoken script for TTS.
-    The AI returns structured data (good for machines); this turns it into
-    natural sentences with transitions (good for listening to).
     """
     lines = []
     lines.append(f"Here's your news briefing for {script.get('date', 'today')}.")
@@ -97,27 +115,15 @@ def script_to_plaintext(script):
     return "\n\n".join(lines)
 
 
-def summarize():
-    # --- Read the emails saved by fetch_emails.py ---
-    with open(RAW_PATH, "r", encoding="utf-8") as f:
-        raw = json.load(f)
-
-    emails = raw["emails"]
-    if not emails:
-        print("No emails to summarize. Exiting.")
-        return None
-
-    # --- Build the prompt ---
-    content_blob = build_content_blob(emails)
-    prompt = PROMPT_TEMPLATE.format(count=len(emails), content=content_blob)
-
-    # --- Call Groq API ---
-    # Groq uses the OpenAI-style "chat completions" format:
-    # messages is a list with roles — "system" sets behaviour,
-    # "user" is the actual request. We put everything in "user" for simplicity.
-    print(f"Sending {len(emails)} emails to Groq for summarization...")
+def process_batch(emails_batch, batch_num):
+    """Process a single batch of emails through Groq API."""
+    print(f"Processing batch {batch_num} ({len(emails_batch)} emails)...")
+    
+    content_blob = build_content_blob(emails_batch)
+    prompt = BATCH_PROMPT_TEMPLATE.format(count=len(emails_batch), content=content_blob)
+    
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",   # Groq's best free model
+        model="llama-3.3-70b-versatile",
         messages=[
             {
                 "role": "system",
@@ -128,32 +134,112 @@ def summarize():
                 "content": prompt,
             },
         ],
-        temperature=0.3,   # lower = more consistent, less creative (good for structured tasks)
+        temperature=0.3,
     )
-
-    # --- Extract and clean the response text ---
+    
     raw_text = response.choices[0].message.content.strip()
-
+    
     # Defensive: strip markdown code fences if the model adds them
     if raw_text.startswith("```"):
         raw_text = raw_text.split("```")[1]
         if raw_text.startswith("json"):
             raw_text = raw_text[4:]
         raw_text = raw_text.strip()
+    
+    batch_result = json.loads(raw_text)
+    print(f"Batch {batch_num} complete: {len(batch_result.get('summaries', []))} summaries")
+    return batch_result
 
-    # --- Parse JSON and save outputs ---
-    script = json.loads(raw_text)
 
+def merge_batches(batch_results):
+    """Merge all batch results into one final script via Groq."""
+    print(f"\nMerging {len(batch_results)} batches into final script...")
+    
+    # Prepare batch content for merging
+    batch_content = json.dumps(batch_results, indent=2)
+    prompt = MERGE_PROMPT_TEMPLATE.format(count=len(batch_results), content=batch_content)
+    
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a helpful assistant that merges and deduplicates podcast script summaries. You always respond with valid JSON only, no extra text.",
+            },
+            {
+                "role": "user",
+                "content": prompt,
+            },
+        ],
+        temperature=0.3,
+    )
+    
+    raw_text = response.choices[0].message.content.strip()
+    
+    # Defensive: strip markdown code fences if the model adds them
+    if raw_text.startswith("```"):
+        raw_text = raw_text.split("```")[1]
+        if raw_text.startswith("json"):
+            raw_text = raw_text[4:]
+        raw_text = raw_text.strip()
+    
+    final_script = json.loads(raw_text)
+    print("Final script merged successfully")
+    return final_script
+
+
+def summarize():
+    # --- Read the emails saved by fetch_emails.py ---
+    with open(RAW_PATH, "r", encoding="utf-8") as f:
+        raw = json.load(f)
+
+    emails = raw["emails"]
+    if not emails:
+        print("No emails to summarize. Exiting.")
+        return None
+
+    # --- Process emails in batches ---
+    batch_size = 10  # Process 10 emails per batch (adjust if needed)
+    batch_results = []
+    
+    for i in range(0, len(emails), batch_size):
+        batch = emails[i:i + batch_size]
+        batch_num = (i // batch_size) + 1
+        
+        try:
+            result = process_batch(batch, batch_num)
+            batch_results.append(result)
+            
+            # Add delay between batches to avoid rate limiting
+            if i + batch_size < len(emails):
+                print("Waiting 2 seconds before next batch...")
+                time.sleep(2)
+        except Exception as e:
+            print(f"Error processing batch {batch_num}: {e}")
+            raise
+
+    # --- Merge all batches into final script ---
+    if len(batch_results) == 1:
+        # Only one batch, use it directly (add date field)
+        final_script = batch_results[0]
+        from datetime import date
+        if "date" not in final_script:
+            final_script["date"] = str(date.today())
+    else:
+        # Multiple batches, merge them
+        final_script = merge_batches(batch_results)
+
+    # --- Save outputs ---
     with open(JSON_OUTPUT_PATH, "w", encoding="utf-8") as f:
-        json.dump(script, f, indent=2, ensure_ascii=False)
+        json.dump(final_script, f, indent=2, ensure_ascii=False)
 
-    plaintext = script_to_plaintext(script)
+    plaintext = script_to_plaintext(final_script)
     with open(TEXT_OUTPUT_PATH, "w", encoding="utf-8") as f:
         f.write(plaintext)
 
     print(f"Saved structured script to {JSON_OUTPUT_PATH}")
     print(f"Saved plaintext script to {TEXT_OUTPUT_PATH}")
-    return script
+    return final_script
 
 
 if __name__ == "__main__":
