@@ -28,5 +28,12 @@
       <pubDate>Thu, 02 Jul 2026 04:18:12 -0000</pubDate>
       <itunes:duration>00:05:00</itunes:duration>
     </item>
+    <item>
+      <title>Briefing 2026-07-03 — US Jobs Report Disappoints</title>
+      <enclosure url="https://github.com/anaisha2002/newsletter-podcast/releases/download/episode-2026-07-03/podcast.mp3" length="3083328" type="audio/mpeg"/>
+      <guid isPermaLink="false">https://github.com/anaisha2002/newsletter-podcast/releases/download/episode-2026-07-03/podcast.mp3</guid>
+      <pubDate>Fri, 03 Jul 2026 10:22:12 -0000</pubDate>
+      <itunes:duration>00:05:00</itunes:duration>
+    </item>
   </channel>
 </rss>
