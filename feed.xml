@@ -42,5 +42,12 @@
       <pubDate>Sat, 04 Jul 2026 09:31:37 -0000</pubDate>
       <itunes:duration>00:05:00</itunes:duration>
     </item>
+    <item>
+      <title>Briefing 2026-07-05 — Customizing AI Agents</title>
+      <enclosure url="https://github.com/anaisha2002/newsletter-podcast/releases/download/episode-2026-07-05/podcast.mp3" length="1247616" type="audio/mpeg"/>
+      <guid isPermaLink="false">https://github.com/anaisha2002/newsletter-podcast/releases/download/episode-2026-07-05/podcast.mp3</guid>
+      <pubDate>Sun, 05 Jul 2026 09:55:17 -0000</pubDate>
+      <itunes:duration>00:05:00</itunes:duration>
+    </item>
   </channel>
 </rss>
