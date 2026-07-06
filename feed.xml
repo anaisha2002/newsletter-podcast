@@ -49,5 +49,12 @@
       <pubDate>Sun, 05 Jul 2026 09:55:17 -0000</pubDate>
       <itunes:duration>00:05:00</itunes:duration>
     </item>
+    <item>
+      <title>Briefing 2026-07-06 — ByteDance to Launch Seedance 2.5 Model</title>
+      <enclosure url="https://github.com/anaisha2002/newsletter-podcast/releases/download/episode-2026-07-06/podcast.mp3" length="4396176" type="audio/mpeg"/>
+      <guid isPermaLink="false">https://github.com/anaisha2002/newsletter-podcast/releases/download/episode-2026-07-06/podcast.mp3</guid>
+      <pubDate>Mon, 06 Jul 2026 14:15:45 -0000</pubDate>
+      <itunes:duration>00:05:00</itunes:duration>
+    </item>
   </channel>
 </rss>
