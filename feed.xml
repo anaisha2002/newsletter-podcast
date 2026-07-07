@@ -56,5 +56,12 @@
       <pubDate>Mon, 06 Jul 2026 14:15:45 -0000</pubDate>
       <itunes:duration>00:05:00</itunes:duration>
     </item>
+    <item>
+      <title>Briefing 2026-07-07 — Microsoft Cuts 4,800 Jobs, Sells Gaming Studios</title>
+      <enclosure url="https://github.com/anaisha2002/newsletter-podcast/releases/download/episode-2026-07-07/podcast.mp3" length="2710800" type="audio/mpeg"/>
+      <guid isPermaLink="false">https://github.com/anaisha2002/newsletter-podcast/releases/download/episode-2026-07-07/podcast.mp3</guid>
+      <pubDate>Tue, 07 Jul 2026 11:28:56 -0000</pubDate>
+      <itunes:duration>00:05:00</itunes:duration>
+    </item>
   </channel>
 </rss>
