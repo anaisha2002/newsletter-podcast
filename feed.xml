@@ -84,5 +84,12 @@
       <pubDate>Sat, 11 Jul 2026 07:27:52 -0000</pubDate>
       <itunes:duration>00:05:00</itunes:duration>
     </item>
+    <item>
+      <title>Briefing 2026-07-12 — Netflix Eyes Live TV Channels</title>
+      <enclosure url="https://github.com/anaisha2002/newsletter-podcast/releases/download/episode-2026-07-12/podcast.mp3" length="1830816" type="audio/mpeg"/>
+      <guid isPermaLink="false">https://github.com/anaisha2002/newsletter-podcast/releases/download/episode-2026-07-12/podcast.mp3</guid>
+      <pubDate>Sun, 12 Jul 2026 08:41:21 -0000</pubDate>
+      <itunes:duration>00:05:00</itunes:duration>
+    </item>
   </channel>
 </rss>
