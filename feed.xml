@@ -91,5 +91,12 @@
       <pubDate>Sun, 12 Jul 2026 08:41:21 -0000</pubDate>
       <itunes:duration>00:05:00</itunes:duration>
     </item>
+    <item>
+      <title>Briefing 2026-07-13 — Apple Accuses OpenAI of Stealing Secrets</title>
+      <enclosure url="https://github.com/anaisha2002/newsletter-podcast/releases/download/episode-2026-07-13/podcast.mp3" length="2776176" type="audio/mpeg"/>
+      <guid isPermaLink="false">https://github.com/anaisha2002/newsletter-podcast/releases/download/episode-2026-07-13/podcast.mp3</guid>
+      <pubDate>Mon, 13 Jul 2026 11:47:25 -0000</pubDate>
+      <itunes:duration>00:05:00</itunes:duration>
+    </item>
   </channel>
 </rss>
