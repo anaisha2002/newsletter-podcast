@@ -98,5 +98,12 @@
       <pubDate>Mon, 13 Jul 2026 11:47:25 -0000</pubDate>
       <itunes:duration>00:05:00</itunes:duration>
     </item>
+    <item>
+      <title>Briefing 2026-07-14 — Codex usage surges to 7M users</title>
+      <enclosure url="https://github.com/anaisha2002/newsletter-podcast/releases/download/episode-2026-07-14/podcast.mp3" length="2788272" type="audio/mpeg"/>
+      <guid isPermaLink="false">https://github.com/anaisha2002/newsletter-podcast/releases/download/episode-2026-07-14/podcast.mp3</guid>
+      <pubDate>Tue, 14 Jul 2026 07:29:22 -0000</pubDate>
+      <itunes:duration>00:05:00</itunes:duration>
+    </item>
   </channel>
 </rss>
